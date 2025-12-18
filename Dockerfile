@@ -1,11 +1,12 @@
-FROM eclipse-temurin:17-jdk-alpine
-
-LABEL authors="SantiagoSu15"
-
+FROM maven:3.8.8-eclipse-temurin-17 AS builder
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn -B clean package -DskipTests
 
-COPY target/BalatroCalculator-0.0.1-SNAPSHOT.jar app.jar
-
+FROM eclipse-temurin:17-jre-jammy
+ARG JAR_FILE=target/*.jar
+WORKDIR /app
+COPY --from=builder /app/${JAR_FILE} app.jar
 EXPOSE 8080
-
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]
